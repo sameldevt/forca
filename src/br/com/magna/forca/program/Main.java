@@ -5,52 +5,131 @@ import java.util.Scanner;
 
 import br.com.magna.forca.entites.Game;
 import br.com.magna.forca.entites.Player;
+import br.com.magna.forca.entites.TerminalHandler;
 
 public class Main {
-	static void clear() {for(int i = 0; i<50; i++)System.out.println();}
-	
 	public static void main(String[] args) {
 		Scanner scan = new Scanner(System.in);
 		Game game = new Game();
 		
-		System.out.print("Quantidade de jogadores: ");
-		int playerQuantity = scan.nextInt();
-		
-		for(int i = 0; i < playerQuantity; i++) {
-			System.out.print("Digite o nome do " + (i + 1) + "º jogador: ");
-			String name = scan.next();
+		int choice = 0;
+		while(true) {		
+			TerminalHandler.clear();
+			TerminalHandler.print(TerminalHandler.LOGO);
+			System.out.println("1 - Jogar");
+			System.out.println("2 - Finalizar o jogo");
+			System.out.print("> ");
+			choice = scan.nextInt();
 			
-			Player player = new Player(name);
-			game.addPlayer(player);
+			switch(choice) {
+				case 1: {
+					int playerQuantity = 0;
+					while(true) {
+						TerminalHandler.clear();
+						TerminalHandler.print(TerminalHandler.LOGO);
+						System.out.println("Quantidade de jogadores");
+						System.out.print("> ");
+						
+						try {
+							playerQuantity = scan.nextInt();
+							break;
+						}
+						catch(InputMismatchException e) {
+							System.out.println();
+							scan.next();
+							continue;
+						}
+					}
+					
+					for(int i = 0; i < playerQuantity; i++) {
+						System.out.println("Digite o nome do " + (i + 1) + "º jogador");
+						System.out.print("> ");
+						String name = scan.next();
+						
+						Player player = new Player(name);
+						game.addPlayer(player);
+					}
+					
+					while(true) {
+						TerminalHandler.clear();
+						TerminalHandler.print(TerminalHandler.LOGO);
+						System.out.println("Escolha a dificuldade");
+						System.out.println("1 - Facil");
+						System.out.println("2 - Médio");
+						System.out.println("3 - Difícil");
+						System.out.print("> ");
+						int difficult;
+						try {
+							difficult = scan.nextInt();
+							game.chooseDifficult(difficult);
+							break;
+						}
+						catch(InputMismatchException e) {
+							System.out.println();
+							scan.next();
+							continue ;
+						}
+					}
+					
+					while(true) {
+						TerminalHandler.clear();
+						TerminalHandler.print(TerminalHandler.LOGO);
+						System.out.println("Digite o total de vidas dos jogadores");
+						System.out.print("> ");
+						int totalHearts;
+						try {
+							totalHearts = scan.nextInt();
+							game.chooseTotalPlayerHearts(totalHearts);
+							break;
+						}
+						catch(InputMismatchException e) {
+							System.out.println();
+							scan.next();
+							continue;
+						}
+					}
+					break;
+				}
+				case 2: {
+					TerminalHandler.clear();
+					System.exit(0);
+				}
+				default: continue;
+			}
+			break;
 		}
-		
+	
 		game.start();
 
 		while(game.getRound() < 1) {
-			clear();
-			game.printWordTable();
-			game.printAttempts();
-			game.printPlayersStats();
+			TerminalHandler.clear();
+			TerminalHandler.print(TerminalHandler.LOGO);
+			game.printStats();
 			
 			System.out.println(game.getCurrentPlayer().getName() + ", digite uma letra");
 			System.out.print("> ");
 			char attempt = scan.next().charAt(0);
 			
-			game.guessLetter(attempt);
+			if(game.guessLetter(attempt)) {
+				TerminalHandler.clear();
+				TerminalHandler.print(TerminalHandler.WIN);
+				game.printWordTable();
+				System.out.println(game.getCurrentPlayer().getName() + " é o vencedor!");
+				System.exit(0);
+			}
 			game.nextPlayer();
 		}
 		
 		while(!game.isWordGuessed) {
-			clear();
-			game.printWordTable();
-			game.printAttempts();
-			game.printPlayersStats();
+			TerminalHandler.clear();
+			TerminalHandler.print(TerminalHandler.LOGO);
+			game.printStats();
 			
 			System.out.println(game.getCurrentPlayer().getName() + ", deseja chutar uma letra ou a palavra inteira?");
 			System.out.println("1 - letra");
 			System.out.println("2 - palavra");
 			System.out.print("> ");
-			int choice;
+			
 			try {
 				choice = scan.nextInt();
 			}
@@ -61,26 +140,33 @@ public class Main {
 			}
 			
 			if(choice == 1) {
-				System.out.print("Digite uma letra: ");
+				System.out.println("Digite uma letra");
+				System.out.print("> ");
 				char attempt = scan.next().charAt(0);
-				game.guessLetter(attempt);
+				if(game.guessLetter(attempt)) {
+					break;
+				}
+				
 				game.nextPlayer();
 			}
 			else if(choice == 2) {
-				System.out.print("Digite a palavra: ");
+				System.out.println("Digite a palavra");
+				System.out.print("> ");
 				String attempt = scan.next();
 				if(game.guessWord(attempt)) {
-					System.out.println(game.getCurrentPlayer().getName() + " é o vencedor!");
-					System.exit(0);
+					break;
 				}
+				game.nextPlayer();
 			}
 			else {
-				game.nextPlayer();
 				continue;
 			}
 			
 		}
 		
+		scan.close();
+		TerminalHandler.clear();
+		TerminalHandler.print(TerminalHandler.WIN);
 		game.printWordTable();
 		System.out.println(game.getCurrentPlayer().getName() + " é o vencedor!");
 		System.exit(0);

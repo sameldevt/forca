@@ -1,41 +1,43 @@
 package br.com.magna.forca.entites;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.Scanner;
 
 public class Game {
 
-	private static List<String> words = new ArrayList<String>();
-	private List<Player> players = new ArrayList<Player>();
+	private static List<String> words;
+	private List<Player> players = new LinkedList<Player>();
 	private Player currentPlayer;
-	private String word;
+	private String secretWord;
 	private char[] table;
 	private String attempts = "";
 	private int round = 0;
 	public boolean isWordGuessed = false;
-	
-	static {
-		fillWordList();
-	}
-	
-	public void printPlayersStats() {
+
+	public void printStats() {
+		for(int i = 0; i < secretWord.length(); i++) {
+			System.out.print(table[i] + " ");
+		}
+		System.out.println("\n");
+		
+		for(int i = 0; i < attempts.length(); i++) {
+			System.out.print(attempts.charAt(i) + " ");
+		}
+		System.out.println();
+		
 		for(Player p : players) {
 			System.out.println(p);
 		}
 	}
 	
-	public void printAttempts() {
-		for(int i = 0; i < attempts.length(); i++) {
-			System.out.print(attempts.charAt(i) + " ");
+	public void printWordTable() {
+		for(int i = 0; i < secretWord.length(); i++) {
+			System.out.print(table[i] + " ");
 		}
-		System.out.println();
+		System.out.println("\n");
 	}
-	
+
 	private void setCurrentPlayer() {
 		currentPlayer = players.get(0);
 	}
@@ -47,16 +49,17 @@ public class Game {
 	}
 	
 	public boolean guessLetter(char attempt) {
-		if(!word.contains(String.valueOf(attempt)) || attempts.contains(String.valueOf(attempt))) {
+		if(!secretWord.contains(String.valueOf(attempt)) || attempts.contains(String.valueOf(attempt))) {
 			currentPlayer.removeHeart();
 			if(!attempts.contains(String.valueOf(attempt))) {
 				attempts+= attempt;
 			}
+			updateRound();
 			return false;
 		}
 		
 		for(int i = 0; i < table.length; i++) {
-			if(word.charAt(i) == attempt) {
+			if(secretWord.charAt(i) == attempt) {
 				table[i] = attempt;
 				if(!attempts.contains(String.valueOf(attempt))) {
 					attempts+= attempt;
@@ -70,8 +73,9 @@ public class Game {
 			attempts+= attempt;
 		}
 		
-		if(String.valueOf(table).equals(word)) {
+		if(String.valueOf(table).equals(secretWord)) {
 			isWordGuessed = true;
+			return true;
 		}
 		
 		updateRound();
@@ -79,7 +83,7 @@ public class Game {
 	}
 
 	public boolean guessWord(String attempt) {
-		if(String.valueOf(attempt.toCharArray()).equals(word)) {
+		if(String.valueOf(attempt.toCharArray()).equals(secretWord)) {
 			return true;
 		}
 		
@@ -102,56 +106,82 @@ public class Game {
 		}
 	}
 	
+	public void verifyPlayers() {
+		boolean allPlayersDead = true;
+		
+		for(Player p : players) {
+			if(!p.isDead()) {
+				allPlayersDead = false;
+				break;
+			}
+		}
+		
+		if(allPlayersDead) {
+			endGame();
+		}
+	}
+	
 	public void nextPlayer() {
 		try {
-			Player nextPlayer = players.get(players.indexOf(currentPlayer) + 1);
-			while(nextPlayer.isPlayerDead()) {
-				nextPlayer = players.get(players.indexOf(nextPlayer) + 1);
+			verifyPlayers();
+			currentPlayer = players.get(players.indexOf(currentPlayer) + 1);
+			while(currentPlayer.isDead()) {
+				nextPlayer();
 			}
-			
-			currentPlayer = nextPlayer;
 		}catch(IndexOutOfBoundsException e) {
-			currentPlayer = players.get(0);
-			if(currentPlayer.isPlayerDead()) {
-				System.exit(0);
+			currentPlayer = players.getFirst();
+			if(currentPlayer.isDead()) {
+				nextPlayer();
 			}
 		}
 	}
 	
+	public void endGame() {
+		TerminalHandler.clear();
+		TerminalHandler.print(TerminalHandler.SKULL);
+		System.out.println("Todos os jogadores estão mortos!");
+		System.out.println("Fim de jogo");
+		System.exit(0);
+	}
+	
 	public void startWordTable() {
-		for(int i = 0; i < word.length(); i++) {
+		for(int i = 0; i < secretWord.length(); i++) {
 			table[i] = '_';
 		}
 	}
 	
-	public void printWordTable() {
-		for(int i = 0; i < word.length(); i++) {
-			System.out.print(table[i] + " ");
+	public void chooseTotalPlayerHearts(int totalHearts) {
+		for(Player p : players) {
+			p.setHearts(totalHearts);
 		}
-		System.out.println("\n");
+	}
+	
+	public void chooseDifficult(int difficult) {
+		switch(difficult) {
+			case 1:{ 
+				words = WordHandler.fillWordList(WordHandler.EASY);
+				break;
+			}
+			case 2:{ 
+				words = WordHandler.fillWordList(WordHandler.MEDIUM);
+				break;
+			}
+			case 3: {
+				words = WordHandler.fillWordList(WordHandler.HARD);
+				break;
+			}
+		}	
 	}
 	
 	public void chooseWord() {
 		Random r = new Random();
 		int randomWord = r.nextInt(words.size());
 		
-		word = words.get(randomWord);
-		table = new char[word.length()];
+		secretWord = words.get(randomWord);
+		table = new char[secretWord.length()];
 	}
 
 	public void addPlayer(Player p) {
 		players.add(p);
-	}
-	
-	private static void fillWordList() {
-		try(Scanner scan = new Scanner(new File("util/words.txt"))){
-			while(scan.hasNext()) {
-				String word = scan.next().toLowerCase();
-				words.add(word);
-			}
-		}
-		catch(IOException e) {
-			e.printStackTrace();
-		}
 	}
 }

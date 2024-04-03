@@ -2,8 +2,8 @@ package br.com.magna.forca.entites;
 
 public class Player {
 	private String name;
-	private boolean isPlayerDead = false;
-	private int hearts = 4;
+	private boolean isDead = false;
+	private int hearts;
 	
 	public Player(String name) {
 		this.name = name;
@@ -12,25 +12,29 @@ public class Player {
 	public String getName() {
 		return name;
 	}
+	
+	public void setHearts(int hearts) {
+		this.hearts = hearts;
+	}
 
 	public int getHearts() {
 		return hearts;
 	}
 	
-	public boolean isPlayerDead() {
-		return isPlayerDead;
+	public boolean isDead() {
+		return isDead;
 	}
 	
 	public void removeHeart() {
 		hearts -= 1;
 		if(hearts <= 0) {
-			isPlayerDead = true;
+			isDead = true;
 		}
 	}
 	
 	@Override
 	public String toString() {
-		if(isPlayerDead) {
+		if(isDead) {
 			return name + " - " + "morto";
 		}
 		
