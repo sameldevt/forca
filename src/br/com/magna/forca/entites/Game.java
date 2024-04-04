@@ -1,5 +1,6 @@
 package br.com.magna.forca.entites;
 
+import java.util.InputMismatchException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -156,7 +157,7 @@ public class Game {
 		}
 	}
 	
-	public void chooseDifficult(int difficult) {
+	public boolean chooseDifficult(int difficult) {
 		switch(difficult) {
 			case 1:{ 
 				words = WordHandler.fillWordList(WordHandler.EASY);
@@ -170,7 +171,11 @@ public class Game {
 				words = WordHandler.fillWordList(WordHandler.HARD);
 				break;
 			}
-		}	
+			default:{
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public void chooseWord() {

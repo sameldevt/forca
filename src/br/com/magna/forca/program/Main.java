@@ -19,8 +19,14 @@ public class Main {
 			System.out.println("1 - Jogar");
 			System.out.println("2 - Finalizar o jogo");
 			System.out.print("> ");
-			choice = scan.nextInt();
-			
+			try {
+				choice = scan.nextInt();		
+			}
+			catch(InputMismatchException e) {
+				System.out.println();
+				scan.next();
+				continue;
+			}
 			switch(choice) {
 				case 1: {
 					int playerQuantity = 0;
@@ -61,6 +67,11 @@ public class Main {
 						int difficult;
 						try {
 							difficult = scan.nextInt();
+							if(difficult > 3 || difficult < 1) {
+								System.out.println();
+								scan.nextLine();
+								continue ;
+							}
 							game.chooseDifficult(difficult);
 							break;
 						}
